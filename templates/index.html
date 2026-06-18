@@ -24,16 +24,12 @@
                         },
                         colors: {
                             zinc: {
-                                950: "#09090b",
-                                900: "#18181b",
-                                800: "#27272a",
-                                700: "#3f3f46",
-                                400: "#a1a1aa",
-                                50: "#fafafa",
-                            },
-                            brand: {
-                                500: "#f59e0b", // Amber 500
-                                600: "#d97706", // Amber 600
+                                950: "#000000" /* pure black */,
+                                900: "#09090b" /* premium dark grey */,
+                                800: "#1f1f23" /* thin borders */,
+                                700: "#27272a",
+                                400: "#a1a1aa" /* muted text */,
+                                50: "#ffffff" /* pure white */,
                             },
                         },
                     },
@@ -42,22 +38,22 @@
         </script>
         <style>
             body {
-                background-color: #09090b;
-                color: #fafafa;
+                background-color: #000000;
+                color: #ffffff;
                 font-family: "Space Grotesk", sans-serif;
             }
             .custom-scrollbar::-webkit-scrollbar {
                 width: 4px;
             }
             .custom-scrollbar::-webkit-scrollbar-track {
-                background: #18181b;
+                background: #000000;
             }
             .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: #27272a;
+                background: #1f1f23;
                 border-radius: 10px;
             }
 
-            /* Tactical Slider styling */
+            /* Tactical Slider styling - Monochrome */
             input[type="range"] {
                 -webkit-appearance: none;
                 background: transparent;
@@ -65,7 +61,7 @@
             input[type="range"]::-webkit-slider-runnable-track {
                 width: 100%;
                 height: 4px;
-                background: #27272a;
+                background: #1f1f23;
                 border-radius: 2px;
             }
             input[type="range"]::-webkit-slider-thumb {
@@ -73,37 +69,43 @@
                 height: 14px;
                 width: 14px;
                 border-radius: 50%;
-                background: #f59e0b;
+                background: #ffffff;
                 cursor: pointer;
                 margin-top: -5px;
-                box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+            }
+
+            /* Remove arrows from number inputs */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
             }
         </style>
     </head>
-    <body class="bg-zinc-950 text-zinc-50 antialiased">
+    <body class="bg-[#000000] text-zinc-50 antialiased">
         <!-- Header -->
         <header
-            class="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md"
+            class="sticky top-0 z-40 w-full border-b border-[#1f1f23] bg-black/90 backdrop-blur-md"
         >
             <div
                 class="container mx-auto flex h-16 items-center justify-between px-4"
             >
                 <div class="flex items-center gap-2">
-                    <span
-                        class="text-2xl font-bold tracking-tighter text-brand-500"
+                    <span class="text-2xl font-bold tracking-tighter text-white"
                         >WM Tippmodell</span
                     >
                 </div>
                 <div class="flex items-center gap-3">
                     <button
                         id="calculatePredictions"
-                        class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-bold text-zinc-950 hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/10"
+                        class="inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200 transition-all"
                     >
                         Tipps berechnen
                     </button>
                     <button
                         id="saveEverything"
-                        class="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-800 transition-colors"
+                        class="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-900 transition-all"
                     >
                         Alles speichern
                     </button>
@@ -117,15 +119,17 @@
                 <aside class="lg:col-span-4 space-y-8">
                     <!-- Card: Team hinzufügen -->
                     <section
-                        class="rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
+                        class="rounded-xl border border-[#1f1f23] bg-[#09090b] p-6 shadow-sm"
                     >
-                        <h2 class="text-xl font-bold mb-5 tracking-tight">
+                        <h2
+                            class="text-xl font-bold mb-5 tracking-tight text-white"
+                        >
                             Team hinzufügen
                         </h2>
                         <form id="addTeamForm" class="space-y-5">
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                    class="text-xs font-bold uppercase tracking-widest text-zinc-400"
                                     >Team-Name</label
                                 >
                                 <input
@@ -133,12 +137,12 @@
                                     id="teamName"
                                     required
                                     placeholder="z.B. Deutschland"
-                                    class="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all placeholder:text-zinc-700"
+                                    class="flex h-11 w-full rounded-md border border-zinc-800 bg-black px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-white transition-all placeholder:text-zinc-700"
                                 />
                             </div>
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                    class="text-xs font-bold uppercase tracking-widest text-zinc-400"
                                     >Initiales Rating (0-100)</label
                                 >
                                 <input
@@ -148,12 +152,12 @@
                                     max="100"
                                     value="50"
                                     required
-                                    class="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
+                                    class="flex h-11 w-full rounded-md border border-zinc-800 bg-black px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-white transition-all"
                                 />
                             </div>
                             <button
                                 type="submit"
-                                class="w-full rounded-lg bg-zinc-50 py-2.5 text-sm font-bold text-zinc-950 hover:bg-brand-500 transition-colors"
+                                class="w-full rounded-md bg-white py-2.5 text-sm font-medium text-black hover:bg-zinc-200 transition-colors"
                             >
                                 Hinzufügen
                             </button>
@@ -162,37 +166,39 @@
 
                     <!-- Card: Spiel hinzufügen -->
                     <section
-                        class="rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
+                        class="rounded-xl border border-[#1f1f23] bg-[#09090b] p-6 shadow-sm"
                     >
-                        <h2 class="text-xl font-bold mb-5 tracking-tight">
+                        <h2
+                            class="text-xl font-bold mb-5 tracking-tight text-white"
+                        >
                             Spiel hinzufügen
                         </h2>
                         <form id="addMatchForm" class="space-y-5">
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                    class="text-xs font-bold uppercase tracking-widest text-zinc-400"
                                     >Team 1</label
                                 >
                                 <select
                                     id="homeTeamSelect"
                                     required
-                                    class="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
+                                    class="flex h-11 w-full rounded-md border border-zinc-800 bg-black px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-white transition-all"
                                 ></select>
                             </div>
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                    class="text-xs font-bold uppercase tracking-widest text-zinc-400"
                                     >Team 2</label
                                 >
                                 <select
                                     id="awayTeamSelect"
                                     required
-                                    class="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
+                                    class="flex h-11 w-full rounded-md border border-zinc-800 bg-black px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-white transition-all"
                                 ></select>
                             </div>
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold uppercase tracking-widest text-zinc-500"
+                                    class="text-xs font-bold uppercase tracking-widest text-zinc-400"
                                     >Spieltag / Phase</label
                                 >
                                 <input
@@ -200,12 +206,12 @@
                                     id="matchdayInput"
                                     placeholder="z.B. Gruppe A, Achtelfinale"
                                     required
-                                    class="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all placeholder:text-zinc-700"
+                                    class="flex h-11 w-full rounded-md border border-zinc-800 bg-black px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-white transition-all placeholder:text-zinc-700"
                                 />
                             </div>
                             <button
                                 type="submit"
-                                class="w-full rounded-lg bg-zinc-50 py-2.5 text-sm font-bold text-zinc-950 hover:bg-brand-500 transition-colors"
+                                class="w-full rounded-md bg-white py-2.5 text-sm font-medium text-black hover:bg-zinc-200 transition-colors"
                             >
                                 Spiel anlegen
                             </button>
@@ -214,15 +220,17 @@
 
                     <!-- Card: Teams Liste -->
                     <section
-                        class="rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
+                        class="rounded-xl border border-[#1f1f23] bg-[#09090b] p-6 shadow-sm"
                     >
                         <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold tracking-tight">
+                            <h2
+                                class="text-xl font-bold tracking-tight text-white"
+                            >
                                 Teams
                             </h2>
                             <button
                                 id="saveRatings"
-                                class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-brand-500 transition-colors"
+                                class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
                             >
                                 Ratings speichern
                             </button>
@@ -248,11 +256,11 @@
         <!-- Notification Toast -->
         <div
             id="toast"
-            class="fixed bottom-8 right-8 flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 px-6 py-4 text-sm font-medium text-zinc-50 shadow-2xl transition-all duration-500 transform translate-y-32 opacity-0 z-50"
+            class="fixed bottom-8 right-8 flex items-center gap-4 rounded-xl border border-[#1f1f23] bg-[#09090b] px-6 py-4 text-sm font-medium text-zinc-50 shadow-2xl transition-all duration-500 transform translate-y-32 opacity-0 z-50"
         >
             <div
                 id="toastIcon"
-                class="h-2 w-2 rounded-full bg-brand-500 animate-pulse"
+                class="h-2 w-2 rounded-full bg-white animate-pulse"
             ></div>
             <span id="toastMessage"></span>
         </div>

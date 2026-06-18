@@ -53,10 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const icon = document.getElementById("toastIcon");
     if (type === "error") {
-      icon.classList.remove("bg-brand-500");
+      icon.classList.remove("bg-white");
       icon.classList.add("bg-red-500");
     } else {
-      icon.classList.add("bg-brand-500");
+      icon.classList.add("bg-white");
       icon.classList.remove("bg-red-500");
     }
 
@@ -100,34 +100,83 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function factorial(n) {
+    if (n === 0 || n === 1) return 1;
+    let res = 1;
+    for (let i = 2; i <= n; i++) res *= i;
+    return res;
+  }
+
+  function poisson(k, lambda) {
+    return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
+  }
+
   function runPredictionAlgorithm() {
     appData.matches.forEach((match) => {
       if (match.status !== "FINISHED") {
-        const home = appData.teams[match.home];
-        const away = appData.teams[match.away];
+        const team1 = appData.teams[match.home];
+        const team2 = appData.teams[match.away];
 
-        if (home && away) {
-          const ratingDiff = home.rating - away.rating;
-          const homeGPM = parseFloat(home.goalsPerMatch) || 1.2;
-          const awayGPM = parseFloat(away.goalsPerMatch) || 1.2;
+        if (team1 && team2) {
+          // 1. Expected Goals (xG)
+          let baseline1 = 1.25;
+          let baseline2 = 1.25;
 
-          let predHome = homeGPM + ratingDiff / 40;
-          let predAway = awayGPM - ratingDiff / 40;
+          // Blend with form (50/50)
+          if (team1.matchesPlayed > 0) {
+            baseline1 = 0.5 * 1.25 + 0.5 * parseFloat(team1.goalsPerMatch);
+          }
+          if (team2.matchesPlayed > 0) {
+            baseline2 = 0.5 * 1.25 + 0.5 * parseFloat(team2.goalsPerMatch);
+          }
 
-          predHome = Math.max(0, Math.round(predHome));
-          predAway = Math.max(0, Math.round(predAway));
+          const diff = team1.rating - team2.rating;
+          let lambda1 = baseline1 * Math.exp(0.02 * diff);
+          let lambda2 = baseline2 * Math.exp(-0.02 * diff);
 
-          const isKnockout = !match.matchday.toLowerCase().includes("gruppe");
-          if (isKnockout && predHome === predAway) {
-            if (home.rating >= away.rating) {
-              predHome++;
-            } else {
-              predAway++;
+          // Cap strictly between 0.2 and 5.0
+          lambda1 = Math.max(0.2, Math.min(5.0, lambda1));
+          lambda2 = Math.max(0.2, Math.min(5.0, lambda2));
+
+          // 2. Poisson Matrix Match (0:0 to 6:6)
+          let outcomes = [];
+          for (let s1 = 0; s1 <= 6; s1++) {
+            for (let s2 = 0; s2 <= 6; s2++) {
+              const prob1 = poisson(s1, lambda1);
+              const prob2 = poisson(s2, lambda2);
+              const jointProb = prob1 * prob2;
+              outcomes.push({ s1, s2, prob: jointProb });
             }
           }
 
-          match.predictedHome = predHome;
-          match.predictedAway = predAway;
+          // Sort by probability descending
+          outcomes.sort((a, b) => b.prob - a.prob);
+
+          let bestOutcome = outcomes[0];
+
+          // 3. Knockout Tie-Breaking
+          const knockoutKeywords = [
+            "achtelfinale",
+            "viertelfinale",
+            "halbfinale",
+            "finale",
+          ];
+          const isKnockout = knockoutKeywords.some((kw) =>
+            match.matchday.toLowerCase().includes(kw),
+          );
+
+          if (isKnockout && bestOutcome.s1 === bestOutcome.s2) {
+            // Reject draw, pick next highest with clear winner
+            for (let i = 1; i < outcomes.length; i++) {
+              if (outcomes[i].s1 !== outcomes[i].s2) {
+                bestOutcome = outcomes[i];
+                break;
+              }
+            }
+          }
+
+          match.predictedHome = bestOutcome.s1;
+          match.predictedAway = bestOutcome.s2;
         }
       }
     });
@@ -152,13 +201,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const team = appData.teams[name];
       const div = document.createElement("div");
       div.className =
-        "group rounded-xl border border-zinc-800 bg-zinc-950 p-4 transition-all hover:border-zinc-700 hover:shadow-lg";
+        "group rounded-xl border border-[#1f1f23] bg-black p-4 transition-all hover:border-zinc-700 hover:shadow-lg";
       div.innerHTML = `
                 <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm font-bold text-zinc-50">${name}</span>
+                    <span class="text-sm font-bold text-white">${name}</span>
                     <div class="flex items-center gap-3">
-                        <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest bg-zinc-900 px-2 py-0.5 rounded">TPS: ${team.goalsPerMatch || 0}</span>
-                        <button onclick="window.deleteTeam('${name}')" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-500 transition-all transform hover:scale-110">
+                        <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest bg-[#09090b] px-2 py-0.5 rounded">GPM: ${team.goalsPerMatch || 0}</span>
+                        <button onclick="window.deleteTeam('${name}')" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-white transition-all transform hover:scale-110">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -167,10 +216,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="flex items-center gap-4">
                     <input type="range" min="0" max="100" value="${team.rating}"
-                        class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-zinc-800 accent-brand-500"
+                        class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-zinc-800"
                         oninput="this.nextElementSibling.textContent = this.value"
                         onchange="window.updateTeamRating('${name}', this.value)">
-                    <span class="text-xs font-bold text-brand-500 w-6 text-right">${team.rating}</span>
+                    <span class="text-xs font-bold text-white w-6 text-right">${team.rating}</span>
                 </div>
             `;
       teamsList.appendChild(div);
@@ -203,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 4. Immediate Sync to JSON
       saveData(true);
-      showToast(`Team ${name} und zugehörige Spiele wurden gelöscht.`);
+      showToast(`Team ${name} gelöscht.`);
     }
   };
 
@@ -230,13 +279,13 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.keys(groups).forEach((day) => {
       const section = document.createElement("section");
       section.className =
-        "rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden shadow-2xl backdrop-blur-sm";
+        "rounded-2xl border border-[#1f1f23] bg-[#09090b] overflow-hidden shadow-2xl backdrop-blur-sm";
 
       let matchesHtml = groups[day]
         .map((match) => {
           const isFinished = match.status === "FINISHED";
           return `
-                    <div class="border-b border-zinc-800/50 last:border-b-0 p-5 transition-all hover:bg-zinc-800/30">
+                    <div class="border-b border-[#1f1f23] last:border-b-0 p-5 transition-all hover:bg-black/40">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
                             <!-- Teams & Score Display -->
                             <div class="flex items-center justify-between md:justify-center gap-6 flex-1">
@@ -244,36 +293,36 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="flex items-center gap-3">
                                     <input type="number" value="${match.homeScore !== null ? match.homeScore : ""}"
                                         placeholder="-"
-                                        class="h-12 w-12 rounded-xl border-2 border-zinc-800 bg-zinc-950 text-center text-lg font-bold text-brand-500 focus:border-brand-500/50 focus:outline-none transition-all ${isFinished ? "border-zinc-700 bg-zinc-900 text-zinc-400" : ""}"
+                                        class="h-12 w-12 rounded-lg border border-[#1f1f23] bg-black text-center text-lg font-bold text-white focus:border-white focus:outline-none transition-all ${isFinished ? "opacity-50" : ""}"
                                         onchange="window.updateMatchScore(${match.id}, 'home', this.value)">
                                     <span class="text-zinc-700 font-bold text-xl">:</span>
                                     <input type="number" value="${match.awayScore !== null ? match.awayScore : ""}"
                                         placeholder="-"
-                                        class="h-12 w-12 rounded-xl border-2 border-zinc-800 bg-zinc-950 text-center text-lg font-bold text-brand-500 focus:border-brand-500/50 focus:outline-none transition-all ${isFinished ? "border-zinc-700 bg-zinc-900 text-zinc-400" : ""}"
+                                        class="h-12 w-12 rounded-lg border border-[#1f1f23] bg-black text-center text-lg font-bold text-white focus:border-white focus:outline-none transition-all ${isFinished ? "opacity-50" : ""}"
                                         onchange="window.updateMatchScore(${match.id}, 'away', this.value)">
                                 </div>
                                 <div class="text-left flex-1 text-base font-bold text-zinc-100 truncate tracking-tight">${match.away}</div>
                             </div>
 
                             <!-- Prediction & Interactive Elements -->
-                            <div class="flex items-center justify-between md:justify-end gap-8 border-t border-zinc-800 md:border-0 pt-5 md:pt-0">
+                            <div class="flex items-center justify-between md:justify-end gap-8 border-t border-[#1f1f23] md:border-0 pt-5 md:pt-0">
                                 <div class="flex flex-col items-center min-w-[70px]">
                                     <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Tipp</span>
-                                    <span class="text-sm font-bold text-zinc-400 bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">${match.predictedHome !== null ? match.predictedHome + ":" + match.predictedAway : "-- : --"}</span>
+                                    <span class="text-sm font-bold text-zinc-400 bg-black px-3 py-1 rounded-full border border-[#1f1f23]">${match.predictedHome !== null ? match.predictedHome + ":" + match.predictedAway : "-- : --"}</span>
                                 </div>
                                 <div class="flex items-center gap-5">
                                     <label class="flex items-center gap-3 cursor-pointer group">
                                         <div class="relative flex items-center">
                                             <input type="checkbox" ${isFinished ? "checked" : ""}
                                                 onchange="window.toggleMatchStatus(${match.id}, this.checked)"
-                                                class="peer h-5 w-5 appearance-none rounded-lg border-2 border-zinc-700 bg-zinc-950 checked:bg-brand-500 checked:border-brand-500 transition-all">
-                                            <svg class="absolute h-3.5 w-3.5 text-zinc-950 opacity-0 peer-checked:opacity-100 transition-opacity left-[3px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                class="peer h-5 w-5 appearance-none rounded-md border border-[#1f1f23] bg-black checked:bg-white checked:border-white transition-all">
+                                            <svg class="absolute h-3.5 w-3.5 text-black opacity-0 peer-checked:opacity-100 transition-opacity left-[3px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
                                             </svg>
                                         </div>
-                                        <span class="text-[11px] font-black text-zinc-500 peer-checked:text-brand-500 uppercase tracking-widest">Beendet</span>
+                                        <span class="text-[11px] font-black text-zinc-500 peer-checked:text-white uppercase tracking-widest">Beendet</span>
                                     </label>
-                                    <button onclick="window.deleteMatch(${match.id})" class="text-zinc-600 hover:text-red-500 transition-colors transform hover:scale-110">
+                                    <button onclick="window.deleteMatch(${match.id})" class="text-zinc-600 hover:text-white transition-colors transform hover:scale-110">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -287,8 +336,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .join("");
 
       section.innerHTML = `
-                <div class="border-b border-zinc-800 bg-zinc-950/30 px-6 py-3 flex justify-between items-center">
-                    <span class="text-xs font-black uppercase tracking-[0.3em] text-brand-500">${day}</span>
+                <div class="border-b border-[#1f1f23] bg-black/30 px-6 py-3 flex justify-between items-center">
+                    <span class="text-xs font-black uppercase tracking-[0.3em] text-white">${day}</span>
                     <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">${groups[day].length} Begegnungen</span>
                 </div>
                 <div>${matchesHtml}</div>
