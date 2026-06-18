@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="de" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WM 2026 Tracker & Prognosen</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            zinc: {
+                                950: "#09090b",
+                                900: "#18181b",
+                                800: "#27272a",
+                                400: "#a1a1aa",
+                                50: "#fafafa",
+                            },
+                        },
+                    },
+                },
+            };
+        </script>
+        <style>
+            body {
+                background-color: #09090b;
+                color: #fafafa;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: #18181b;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #27272a;
+                border-radius: 10px;
+            }
+        </style>
+    </head>
+    <body class="bg-zinc-950 text-zinc-50 font-sans antialiased">
+        <!-- Header -->
+        <header
+            class="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/95 backdrop-blur"
+        >
+            <div
+                class="container mx-auto flex h-16 items-center justify-between px-4"
+            >
+                <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold tracking-tight"
+                        >⚽ WM 2026</span
+                    >
+                </div>
+                <div class="flex items-center gap-3">
+                    <button
+                        id="calculatePredictions"
+                        class="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-200 transition-colors"
+                    >
+                        Tipps berechnen
+                    </button>
+                    <button
+                        id="saveEverything"
+                        class="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-800 transition-colors"
+                    >
+                        Alles speichern
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mx-auto mt-8 px-4 pb-20">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Linke Spalte: Admin & Teams -->
+                <aside class="lg:col-span-4 space-y-6">
+                    <!-- Team hinzufügen -->
+                    <section
+                        class="rounded-lg border border-zinc-800 bg-zinc-900 p-6 shadow-sm"
+                    >
+                        <h2 class="text-lg font-semibold mb-4 text-zinc-50">
+                            Team hinzufügen
+                        </h2>
+                        <form id="addTeamForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-zinc-400"
+                                    >Team-Name</label
+                                >
+                                <input
+                                    type="text"
+                                    id="teamName"
+                                    required
+                                    placeholder="z.B. Deutschland"
+                                    class="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 placeholder:text-zinc-600"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-zinc-400"
+                                    >Initiales Rating (0-100)</label
+                                >
+                                <input
+                                    type="number"
+                                    id="teamRating"
+                                    min="0"
+                                    max="100"
+                                    value="50"
+                                    required
+                                    class="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                class="w-full rounded-md bg-zinc-50 py-2 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors"
+                            >
+                                Team hinzufügen
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- Spiel hinzufügen -->
+                    <section
+                        class="rounded-lg border border-zinc-800 bg-zinc-900 p-6 shadow-sm"
+                    >
+                        <h2 class="text-lg font-semibold mb-4 text-zinc-50">
+                            Spiel hinzufügen
+                        </h2>
+                        <form id="addMatchForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-zinc-400"
+                                    >Team 1</label
+                                >
+                                <select
+                                    id="homeTeamSelect"
+                                    required
+                                    class="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                                ></select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-zinc-400"
+                                    >Team 2</label
+                                >
+                                <select
+                                    id="awayTeamSelect"
+                                    required
+                                    class="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                                ></select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-zinc-400"
+                                    >Spieltag / Phase</label
+                                >
+                                <input
+                                    type="text"
+                                    id="matchdayInput"
+                                    placeholder="z.B. Gruppe A, Achtelfinale"
+                                    required
+                                    class="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 placeholder:text-zinc-600"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                class="w-full rounded-md bg-zinc-50 py-2 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors"
+                            >
+                                Spiel hinzufügen
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- Teams Liste -->
+                    <section
+                        class="rounded-lg border border-zinc-800 bg-zinc-900 p-6 shadow-sm"
+                    >
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-zinc-50">
+                                Teams
+                            </h2>
+                            <button
+                                id="saveRatings"
+                                class="text-xs text-zinc-400 hover:text-zinc-50 transition-colors"
+                            >
+                                Ratings speichern
+                            </button>
+                        </div>
+                        <div
+                            id="teamsList"
+                            class="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1"
+                        >
+                            <!-- Teams injection -->
+                        </div>
+                    </section>
+                </aside>
+
+                <!-- Hauptbereich: Spiele -->
+                <main class="lg:col-span-8">
+                    <div id="matchesContainer" class="space-y-8">
+                        <!-- Matches injection -->
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div
+            id="toast"
+            class="fixed bottom-6 right-6 flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 z-50"
+        >
+            <span id="toastMessage"></span>
+        </div>
+
+        <script src="/static/js/app.js"></script>
+    </body>
+</html>

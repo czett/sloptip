@@ -1,0 +1,29 @@
+{
+    "matches": [],
+    "teams": {
+        "Jordanien": {
+            "rating": 50,
+            "goalsScored": 0,
+            "matchesPlayed": 0,
+            "goalsPerMatch": 0
+        },
+        "Norwegen": {
+            "rating": 70,
+            "goalsScored": 0,
+            "matchesPlayed": 0,
+            "goalsPerMatch": 0
+        },
+        "Irak": {
+            "rating": 60,
+            "goalsScored": 0,
+            "matchesPlayed": 0,
+            "goalsPerMatch": 0
+        },
+        "\u00d6sterreich": {
+            "rating": 70,
+            "goalsScored": 0,
+            "matchesPlayed": 0,
+            "goalsPerMatch": 0
+        }
+    }
+}

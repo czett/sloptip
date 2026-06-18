@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WM Tippmodell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0E1310;
+    --surface: #161C18;
+    --surface-2: #1E2620;
+    --line: #2C372E;
+    --text: #F2F4ED;
+    --text-dim: #97A599;
+    --attack: #DDA24A;
+    --attack-dim: #3A2E1B;
+    --defense: #3FA08F;
+    --defense-dim: #16312C;
+    --radius: 4px;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:920px; margin:0 auto; padding:28px 20px 80px; }
+  h1,h2,h3{ font-family:'Space Grotesk', 'Inter', sans-serif; margin:0; letter-spacing:-0.01em; }
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--text-dim); margin-bottom:6px;
+  }
+  header{ margin-bottom:28px; border-bottom:1px solid var(--line); padding-bottom:22px; }
+  header h1{ font-size:28px; font-weight:700; }
+  header p{ color:var(--text-dim); font-size:14px; margin-top:8px; max-width:560px; }
+
+  .names-row{ display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+  .names-row input{
+    flex:1; background:var(--surface); border:1px solid var(--line); color:var(--text);
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px;
+    padding:10px 12px; border-radius:var(--radius); min-width:0;
+  }
+  .names-row input:focus{ outline:2px solid var(--attack); outline-offset:1px; }
+  .vs-tag{ color:var(--text-dim); font-size:12px; letter-spacing:0.12em; flex-shrink:0; }
+
+  .result-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; margin-bottom:28px;
+  }
+  .result-top{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; }
+  .result-teams{ font-size:13px; color:var(--text-dim); font-family:'Space Grotesk', sans-serif; }
+  .result-score{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(40px, 7vw, 64px); letter-spacing:-0.02em;
+    font-variant-numeric: tabular-nums; margin:6px 0 4px;
+  }
+  .result-score .sep{ color:var(--attack); padding:0 10px; }
+  .result-xg{ font-size:12px; color:var(--text-dim); margin-bottom:18px; }
+  .result-xg b{ color:var(--text); font-weight:600; }
+  .bars{ display:flex; flex-direction:column; gap:7px; }
+  .bar-row{ display:grid; grid-template-columns:50px 1fr 52px; align-items:center; gap:10px; font-size:12px; }
+  .bar-row .label{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-variant-numeric: tabular-nums; }
+  .bar-track{ background:var(--surface-2); border-radius:2px; height:9px; overflow:hidden; }
+  .bar-fill{ background:var(--attack); height:100%; border-radius:2px; }
+  .bar-pct{ text-align:right; color:var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  .cards{ display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .card-title{ font-size:15px; font-weight:600; margin-bottom:4px; }
+  .card-note{ font-size:12px; color:var(--text-dim); margin-bottom:14px; max-width:680px; }
+
+  .attr-row{ padding:10px 0; border-top:1px solid var(--line); }
+  .attr-row:first-of-type{ border-top:none; }
+  .attr-label{
+    font-size:13px; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .side-tag{
+    font-family:'Space Grotesk', sans-serif; font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:2px 6px; border-radius:2px;
+  }
+  .row-attack .side-tag{ background:var(--attack-dim); color:var(--attack); }
+  .row-defense .side-tag{ background:var(--defense-dim); color:var(--defense); }
+  .row-attack{ border-left:2px solid var(--attack); padding-left:12px; margin-left:-1px; }
+  .row-defense{ border-left:2px solid var(--defense); padding-left:12px; margin-left:-1px; }
+
+  .attr-sliders{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .slider-group{ display:flex; align-items:center; gap:10px; }
+  .team-tag{ font-size:11px; color:var(--text-dim); width:64px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .slider-group input[type=range]{ flex:1; accent-color:var(--attack); min-width:0; }
+  .slider-group output{ font-variant-numeric: tabular-nums; font-size:12px; width:18px; text-align:right; color:var(--text-dim); }
+
+  .save-row{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; margin-bottom:28px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+  }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:11px; color:var(--text-dim); }
+  .field input[type=number]{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    padding:8px 10px; border-radius:var(--radius); width:80px; font-family:'Space Grotesk', sans-serif;
+  }
+  .field input:focus{ outline:2px solid var(--attack); outline-offset:1px; }
+  .btn{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text);
+    padding:10px 16px; border-radius:var(--radius); cursor:pointer;
+  }
+  .btn:hover{ border-color:var(--attack); }
+  .btn:focus-visible{ outline:2px solid var(--attack); outline-offset:1px; }
+  .btn-primary{ background:var(--attack); color:#1a1408; border-color:var(--attack); }
+  .btn-ghost{ background:transparent; }
+  .save-msg{ font-size:12px; color:var(--attack); flex-basis:100%; }
+
+  .calibration{ border-top:1px solid var(--line); padding-top:24px; }
+  .calibration h2{ font-size:18px; margin-bottom:4px; }
+  .calibration > p{ font-size:13px; color:var(--text-dim); margin:0 0 16px; }
+  .match-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:10px 14px; margin-bottom:8px; font-size:13px;
+  }
+  .match-info b{ font-family:'Space Grotesk', sans-serif; }
+  .match-pred{ color:var(--text-dim); font-size:12px; }
+  .del-btn{
+    background:none; border:1px solid var(--line); color:var(--text-dim); border-radius:2px;
+    width:24px; height:24px; cursor:pointer; flex-shrink:0;
+  }
+  .del-btn:hover{ border-color:var(--attack); color:var(--attack); }
+  .empty-note{ font-size:13px; color:var(--text-dim); font-style:italic; }
+
+  .calib-actions{ display:flex; align-items:center; gap:14px; margin:16px 0; flex-wrap:wrap; }
+  .calib-status{ font-size:12px; color:var(--text-dim); }
+  .calib-status b{ color:var(--defense); }
+
+  details{ margin-top:8px; }
+  summary{ cursor:pointer; font-size:13px; color:var(--text-dim); font-family:'Space Grotesk', sans-serif; padding:8px 0; }
+  summary:hover{ color:var(--text); }
+  .weights-grid{ display:flex; flex-direction:column; gap:10px; padding-top:10px; }
+  .weight-row{ display:grid; grid-template-columns:200px 1fr 40px; gap:12px; align-items:center; font-size:12px; }
+  .weight-row input[type=range]{ accent-color:var(--defense); }
+  .weight-row output{ text-align:right; font-variant-numeric: tabular-nums; color:var(--text-dim); }
+
+  @media (max-width:680px){
+    .attr-sliders{ grid-template-columns:1fr; }
+    .result-score{ font-size:42px; }
+    .weight-row{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Taktisches xG-Modell</div>
+    <h1>WM Tippmodell</h1>
+    <p>Bewerte beide Teams je Spiel auf den taktischen Gegensatzpaaren unten. Das Modell rechnet daraus eine Torerwartung und einen Tipp. Gespeicherte Spiele mit echtem Ergebnis kalibrieren die Gewichte.</p>
+  </header>
+
+  <div class="names-row">
+    <input id="teamA-name" type="text" value="Team A" placeholder="Team A">
+    <span class="vs-tag">VS</span>
+    <input id="teamB-name" type="text" value="Team B" placeholder="Team B">
+  </div>
+
+  <section class="result-card" id="result-card"></section>
+
+  <section class="cards" id="cards-container"></section>
+
+  <section class="save-row">
+    <div class="field">
+      <label for="actualA">Tore Team A (real)</label>
+      <input type="number" id="actualA" min="0" max="20">
+    </div>
+    <div class="field">
+      <label for="actualB">Tore Team B (real)</label>
+      <input type="number" id="actualB" min="0" max="20">
+    </div>
+    <button class="btn btn-primary" id="save-match-btn">Als Kalibrierungsspiel speichern</button>
+    <button class="btn btn-ghost" id="reset-btn">Neues Spiel / Zurücksetzen</button>
+    <div class="save-msg" id="save-msg" style="display:none;"></div>
+  </section>
+
+  <section class="calibration">
+    <h2>Kalibrierung</h2>
+    <p>Gespeicherte Spiele mit echtem Ergebnis. Je mehr Spieltage du sammelst, desto sinnvoller wird die Kalibrierung.</p>
+    <div id="matches-list"></div>
+    <div class="calib-actions">
+      <button class="btn" id="calibrate-btn">Modell kalibrieren</button>
+      <span class="calib-status" id="calib-status"></span>
+    </div>
+    <details>
+      <summary>Gewichte &amp; Basiswerte manuell anpassen</summary>
+      <div class="weights-grid" id="weights-editor"></div>
+    </details>
+  </section>
+
+</div>
+
+<script>
+/* ---------- Konfiguration ---------- */
+
+const STORAGE_KEY = 'wm-tippmodell-v1';
+
+const DEFAULT_TEAM = () => ({
+  luecken: 5, agilitaetVorne: 5,
+  kompaktheit: 5, dribblingZielspieler: 5,
+  avIvGroesse: 5, zielspielerGroesse: 5,
+  rueckwaerts: 5, konterfaehigkeit: 5,
+  organisiertheit: 5, standards: 5, agilitaetAllgemein: 5,
+  dringlichkeit: 5
+});
+
+// Rechen-Kategorien (7), inkl. geteilter "organisiertheit" bei c5/c6
+const CATEGORIES = [
+  { id:'c1', type:'additive',    defenseKey:'luecken',             attackKey:'agilitaetVorne' },
+  { id:'c2', type:'subtractive', defenseKey:'kompaktheit',         attackKey:'dribblingZielspieler' },
+  { id:'c3', type:'subtractive', defenseKey:'avIvGroesse',         attackKey:'zielspielerGroesse' },
+  { id:'c4', type:'subtractive', defenseKey:'rueckwaerts',         attackKey:'konterfaehigkeit' },
+  { id:'c5', type:'subtractive', defenseKey:'organisiertheit',     attackKey:'standards' },
+  { id:'c6', type:'subtractive', defenseKey:'organisiertheit',     attackKey:'agilitaetAllgemein' },
+  { id:'c7', type:'standalone',  defenseKey:null,                  attackKey:'dringlichkeit' }
+];
+
+const CATEGORY_LABELS = {
+  c1:'Lückenhaftigkeit ↔ Agilität vorne',
+  c2:'Kompaktheit ↔ Dribbling/Zielspieler',
+  c3:'AV-Qualität+IV-Größe ↔ Zielspieler-Größe',
+  c4:'Konterfähigkeit ↔ Rückwärtsbewegung',
+  c5:'Standards ↔ Organisiertheit',
+  c6:'Agilität ↔ Organisiertheit',
+  c7:'Dringlichkeit (ohne Gegenstück)'
+};
+
+// Visuelle Karten (6), c5+c6 teilen sich die Organisiertheit-Zeile
+const CARDS = [
+  { title:'Lückenhaftigkeit der Verteidigung ↔ Agilität vorne',
+    note:'Löchrige Abwehr und agiler Angriff verstärken sich gegenseitig.',
+    rows:[ {key:'luecken', label:'Lückenhaftigkeit der Verteidigung', side:'defense'},
+           {key:'agilitaetVorne', label:'Agilität vorne', side:'attack'} ] },
+  { title:'Kompaktheit ↔ Dribblingfähigkeit + Zielspieler',
+    note:'Kompakte Abwehr entschärft Dribbler-Zielspieler-Kombinationen.',
+    rows:[ {key:'kompaktheit', label:'Kompaktheit', side:'defense'},
+           {key:'dribblingZielspieler', label:'Dribblingfähigkeit + Zielspieler', side:'attack'} ] },
+  { title:'Außenverteidiger-Qualität + IV-Größe ↔ Zielspieler-Größe',
+    note:'Schwache Außenverteidiger / kleine Innenverteidiger gegen großen Zielspieler wirken direkt — auch ohne starke Flügelspieler.',
+    rows:[ {key:'avIvGroesse', label:'AV-Qualität + IV-Größe', side:'defense'},
+           {key:'zielspielerGroesse', label:'Zielspieler-Größe', side:'attack'} ] },
+  { title:'Konterfähigkeit ↔ Rückwärtsbewegung der Verteidigung',
+    note:'Schnelle Konter gegen eine Abwehr, die schlecht zurückarbeitet.',
+    rows:[ {key:'rueckwaerts', label:'Rückwärtsbewegung der Verteidigung', side:'defense'},
+           {key:'konterfaehigkeit', label:'Konterfähigkeit', side:'attack'} ] },
+  { title:'Standards & Agilität ↔ Organisiertheit der Verteidigung',
+    note:'Zwei Angriffswege, ein gemeinsamer Gegenspieler: gute Organisation entschärft beides.',
+    rows:[ {key:'organisiertheit', label:'Organisiertheit der Verteidigung', side:'defense'},
+           {key:'standards', label:'Standards', side:'attack'},
+           {key:'agilitaetAllgemein', label:'Agilität (allgemein)', side:'attack'} ] },
+  { title:'Dringlichkeit eines Sieges',
+    note:'Wirkt direkt erhöhend auf die eigene Torgefahr — ohne Gegenstück bei der anderen Mannschaft.',
+    rows:[ {key:'dringlichkeit', label:'Dringlichkeit eines Sieges', side:'attack'} ] }
+];
+
+const DEFAULT_WEIGHTS = { c1:1, c2:1, c3:1.2, c4:1, c5:1, c6:1, c7:1 };
+const DEFAULT_PARAMS = { weights:{...DEFAULT_WEIGHTS}, baseXG:1.3, scale:0.12 };
+
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+let state = {
+  teamA:{ name:'Team A', attrs:DEFAULT_TEAM() },
+  teamB:{ name:'Team B', attrs:DEFAULT_TEAM() },
+  params: clone(DEFAULT_PARAMS),
+  matches: []
+};
+
+/* ---------- Modell ---------- */
+
+function dev(v){ return v - 5; }
+
+function computeThreat(attackAttrs, defenseAttrs, weights){
+  let total = 0;
+  for(const cat of CATEGORIES){
+    const w = weights[cat.id] ?? 1;
+    if(cat.type === 'additive'){
+      total += w * ( dev(defenseAttrs[cat.defenseKey]) + dev(attackAttrs[cat.attackKey]) );
+    } else if(cat.type === 'subtractive'){
+      total += w * ( dev(attackAttrs[cat.attackKey]) - dev(defenseAttrs[cat.defenseKey]) );
+    } else {
+      total += w * dev(attackAttrs[cat.attackKey]);
+    }
+  }
+  return total;
+}
+
+function computeXG(attackAttrs, defenseAttrs, params){
+  const threat = computeThreat(attackAttrs, defenseAttrs, params.weights);
+  return Math.max(0.05, params.baseXG + params.scale * threat);
+}
+
+function factorial(n){ let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+function poissonP(k, lambda){ return Math.exp(-lambda) * Math.pow(lambda,k) / factorial(k); }
+
+function topScorelines(xgA, xgB, limit=5, max=6){
+  const rows = [];
+  for(let a=0; a<=max; a++){
+    for(let b=0; b<=max; b++){
+      rows.push({ a, b, p: poissonP(a,xgA) * poissonP(b,xgB) });
+    }
+  }
+  rows.sort((x,y) => y.p - x.p);
+  return rows.slice(0, limit);
+}
+
+function totalError(params, matches){
+  let err = 0;
+  for(const m of matches){
+    const xgA = computeXG(m.teamA, m.teamB, params);
+    const xgB = computeXG(m.teamB, m.teamA, params);
+    err += (xgA - m.actualA)**2 + (xgB - m.actualB)**2;
+  }
+  return err;
+}
+
+function simulatedAnnealing(matches, startParams, iterations=4000){
+  let current = clone(startParams);
+  let currentErr = totalError(current, matches);
+  let best = clone(current);
+  let bestErr = currentErr;
+  let temp = 1.0;
+  const weightKeys = Object.keys(current.weights);
+
+  for(let i=0; i<iterations; i++){
+    const cand = clone(current);
+    const r = Math.random();
+    if(r < 0.75){
+      const k = weightKeys[Math.floor(Math.random()*weightKeys.length)];
+      cand.weights[k] = Math.max(0, cand.weights[k] + (Math.random()-0.5)*0.4*temp);
+    } else if(r < 0.9){
+      cand.baseXG = Math.max(0.05, cand.baseXG + (Math.random()-0.5)*0.3*temp);
+    } else {
+      cand.scale = Math.max(0.005, cand.scale + (Math.random()-0.5)*0.03*temp);
+    }
+    const candErr = totalError(cand, matches);
+    const delta = candErr - currentErr;
+    if(delta < 0 || Math.random() < Math.exp(-delta / Math.max(0.001, temp*0.3))){
+      current = cand; currentErr = candErr;
+      if(currentErr < bestErr){ best = clone(current); bestErr = currentErr; }
+    }
+    temp *= 0.999;
+  }
+  return { params:best, before:totalError(startParams, matches), after:bestErr };
+}
+
+/* ---------- Persistenz ---------- */
+
+let saveTimer = null;
+function schedulePersist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); }
+    catch(e){ console.error('Speichern fehlgeschlagen', e); }
+  }, 400);
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state.teamA.name = parsed.teamA?.name || 'Team A';
+      state.teamB.name = parsed.teamB?.name || 'Team B';
+      state.teamA.attrs = Object.assign(DEFAULT_TEAM(), parsed.teamA?.attrs || {});
+      state.teamB.attrs = Object.assign(DEFAULT_TEAM(), parsed.teamB?.attrs || {});
+      state.params = {
+        weights: Object.assign({...DEFAULT_WEIGHTS}, parsed.params?.weights || {}),
+        baseXG: parsed.params?.baseXG ?? DEFAULT_PARAMS.baseXG,
+        scale: parsed.params?.scale ?? DEFAULT_PARAMS.scale
+      };
+      state.matches = Array.isArray(parsed.matches) ? parsed.matches : [];
+    }
+  } catch(e){ /* kein gespeicherter Stand vorhanden */ }
+}
+
+/* ---------- Rendering ---------- */
+
+function fmt1(x){ return x.toFixed(1); }
+function fmt2(x){ return x.toFixed(2); }
+
+function renderResult(){
+  const xgA = computeXG(state.teamA.attrs, state.teamB.attrs, state.params);
+  const xgB = computeXG(state.teamB.attrs, state.teamA.attrs, state.params);
+  const top = topScorelines(xgA, xgB, 5);
+  const topP = top[0].p;
+
+  const bars = top.map(row => `
+    <div class="bar-row">
+      <span class="label">${row.a}:${row.b}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, (row.p/topP)*100)}%"></div></div>
+      <span class="bar-pct">${(row.p*100).toFixed(1)}%</span>
+    </div>`).join('');
+
+  document.getElementById('result-card').innerHTML = `
+    <div class="result-top">
+      <div>
+        <div class="result-teams">${escapeHtml(state.teamA.name)} &nbsp;vs&nbsp; ${escapeHtml(state.teamB.name)}</div>
+        <div class="result-score">${top[0].a}<span class="sep">:</span>${top[0].b}</div>
+        <div class="result-xg">xG &nbsp;<b>${fmt2(xgA)}</b> &nbsp;–&nbsp; <b>${fmt2(xgB)}</b></div>
+      </div>
+    </div>
+    <div class="bars">${bars}</div>
+  `;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function sliderRowHTML(key, label, side){
+  return `
+    <div class="attr-row row-${side}">
+      <div class="attr-label">${label}<span class="side-tag">${side==='attack'?'Angriff':'Abwehr'}</span></div>
+      <div class="attr-sliders">
+        <div class="slider-group">
+          <span class="team-tag" data-team="A">${escapeHtml(state.teamA.name)}</span>
+          <input type="range" min="0" max="10" step="1" value="${state.teamA.attrs[key]}" data-team="A" data-key="${key}">
+          <output>${state.teamA.attrs[key]}</output>
+        </div>
+        <div class="slider-group">
+          <span class="team-tag" data-team="B">${escapeHtml(state.teamB.name)}</span>
+          <input type="range" min="0" max="10" step="1" value="${state.teamB.attrs[key]}" data-team="B" data-key="${key}">
+          <output>${state.teamB.attrs[key]}</output>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCards(){
+  const html = CARDS.map(card => `
+    <div class="card">
+      <div class="card-title">${card.title}</div>
+      <div class="card-note">${card.note}</div>
+      ${card.rows.map(r => sliderRowHTML(r.key, r.label, r.side)).join('')}
+    </div>
+  `).join('');
+  document.getElementById('cards-container').innerHTML = html;
+}
+
+function renderWeightsEditor(){
+  const rows = CATEGORIES.map(cat => `
+    <div class="weight-row">
+      <span>${CATEGORY_LABELS[cat.id]}</span>
+      <input type="range" min="0" max="3" step="0.05" value="${state.params.weights[cat.id]}" data-weight="${cat.id}">
+      <output data-weight-out="${cat.id}">${state.params.weights[cat.id].toFixed(2)}</output>
+    </div>`).join('');
+
+  document.getElementById('weights-editor').innerHTML = rows + `
+    <div class="weight-row">
+      <span>Basis-Torerwartung</span>
+      <input type="range" min="0.1" max="3" step="0.05" value="${state.params.baseXG}" data-param="baseXG">
+      <output data-param-out="baseXG">${state.params.baseXG.toFixed(2)}</output>
+    </div>
+    <div class="weight-row">
+      <span>Skalierungsfaktor</span>
+      <input type="range" min="0.005" max="0.4" step="0.005" value="${state.params.scale}" data-param="scale">
+      <output data-param-out="scale">${state.params.scale.toFixed(3)}</output>
+    </div>`;
+}
+
+function renderMatchesList(){
+  const container = document.getElementById('matches-list');
+  if(state.matches.length === 0){
+    container.innerHTML = `<div class="empty-note">Noch keine Spiele gespeichert.</div>`;
+    return;
+  }
+  container.innerHTML = state.matches.map(m => `
+    <div class="match-row">
+      <div class="match-info">
+        <b>${escapeHtml(m.teamAName)} ${m.actualA}:${m.actualB} ${escapeHtml(m.teamBName)}</b>
+        <span class="match-pred"> &nbsp;— Tipp damals: xG ${fmt2(m.predXgA)}:${fmt2(m.predXgB)}</span>
+      </div>
+      <button class="del-btn" data-del="${m.id}" title="Spiel löschen">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderAll(){
+  document.getElementById('teamA-name').value = state.teamA.name;
+  document.getElementById('teamB-name').value = state.teamB.name;
+  renderCards();
+  renderResult();
+  renderWeightsEditor();
+  renderMatchesList();
+}
+
+/* ---------- Event-Handling ---------- */
+
+document.getElementById('teamA-name').addEventListener('input', e => {
+  state.teamA.name = e.target.value || 'Team A';
+  document.querySelectorAll('.team-tag[data-team="A"]').forEach(el => el.textContent = state.teamA.name);
+  renderResult();
+  schedulePersist();
+});
+document.getElementById('teamB-name').addEventListener('input', e => {
+  state.teamB.name = e.target.value || 'Team B';
+  document.querySelectorAll('.team-tag[data-team="B"]').forEach(el => el.textContent = state.teamB.name);
+  renderResult();
+  schedulePersist();
+});
+
+document.getElementById('cards-container').addEventListener('input', e => {
+  const input = e.target;
+  if(input.tagName !== 'INPUT') return;
+  const team = input.dataset.team;
+  const key = input.dataset.key;
+  const val = Number(input.value);
+  if(team === 'A') state.teamA.attrs[key] = val;
+  if(team === 'B') state.teamB.attrs[key] = val;
+  input.nextElementSibling.textContent = val;
+  renderResult();
+  schedulePersist();
+});
+
+document.getElementById('weights-editor').addEventListener('input', e => {
+  const input = e.target;
+  if(input.tagName !== 'INPUT') return;
+  if(input.dataset.weight){
+    const v = Number(input.value);
+    state.params.weights[input.dataset.weight] = v;
+    document.querySelector(`output[data-weight-out="${input.dataset.weight}"]`).textContent = v.toFixed(2);
+  } else if(input.dataset.param){
+    const v = Number(input.value);
+    state.params[input.dataset.param] = v;
+    document.querySelector(`output[data-param-out="${input.dataset.param}"]`).textContent =
+      input.dataset.param === 'scale' ? v.toFixed(3) : v.toFixed(2);
+  }
+  renderResult();
+  schedulePersist();
+});
+
+document.getElementById('save-match-btn').addEventListener('click', () => {
+  const aVal = document.getElementById('actualA').value;
+  const bVal = document.getElementById('actualB').value;
+  const msg = document.getElementById('save-msg');
+  if(aVal === '' || bVal === ''){
+    msg.style.display = 'block';
+    msg.textContent = 'Bitte echtes Ergebnis bei beiden Teams eintragen, um zu kalibrieren.';
+    return;
+  }
+  const xgA = computeXG(state.teamA.attrs, state.teamB.attrs, state.params);
+  const xgB = computeXG(state.teamB.attrs, state.teamA.attrs, state.params);
+  state.matches.push({
+    id: Date.now(),
+    teamAName: state.teamA.name,
+    teamBName: state.teamB.name,
+    teamA: clone(state.teamA.attrs),
+    teamB: clone(state.teamB.attrs),
+    actualA: Number(aVal),
+    actualB: Number(bVal),
+    predXgA: xgA,
+    predXgB: xgB
+  });
+  msg.style.display = 'block';
+  msg.textContent = 'Spiel gespeichert.';
+  renderMatchesList();
+  schedulePersist();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  state.teamA = { name:'Team A', attrs:DEFAULT_TEAM() };
+  state.teamB = { name:'Team B', attrs:DEFAULT_TEAM() };
+  document.getElementById('actualA').value = '';
+  document.getElementById('actualB').value = '';
+  document.getElementById('save-msg').style.display = 'none';
+  renderAll();
+  schedulePersist();
+});
+
+document.getElementById('matches-list').addEventListener('click', e => {
+  const btn = e.target.closest('.del-btn');
+  if(!btn) return;
+  const id = Number(btn.dataset.del);
+  state.matches = state.matches.filter(m => m.id !== id);
+  renderMatchesList();
+  schedulePersist();
+});
+
+document.getElementById('calibrate-btn').addEventListener('click', () => {
+  const status = document.getElementById('calib-status');
+  if(state.matches.length === 0){
+    status.innerHTML = 'Speichere mindestens ein Spiel mit Ergebnis, um zu kalibrieren.';
+    return;
+  }
+  const result = simulatedAnnealing(state.matches, state.params);
+  state.params = result.params;
+  status.innerHTML = `Fehler verbessert: <b>${fmt2(result.before)}</b> → <b>${fmt2(result.after)}</b> (über ${state.matches.length} Spiel${state.matches.length>1?'e':''})`;
+  renderWeightsEditor();
+  renderResult();
+  schedulePersist();
+});
+
+/* ---------- Start ---------- */
+
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+</script>
+</body>
+</html>

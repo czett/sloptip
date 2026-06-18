@@ -1,0 +1,368 @@
+document.addEventListener("DOMContentLoaded", () => {
+  let appData = {
+    teams: {},
+    matches: [],
+  };
+
+  // --- DOM Elements ---
+  const addTeamForm = document.getElementById("addTeamForm");
+  const addMatchForm = document.getElementById("addMatchForm");
+  const teamsList = document.getElementById("teamsList");
+  const matchesContainer = document.getElementById("matchesContainer");
+  const homeTeamSelect = document.getElementById("homeTeamSelect");
+  const awayTeamSelect = document.getElementById("awayTeamSelect");
+  const calculateBtn = document.getElementById("calculatePredictions");
+  const saveEverythingBtn = document.getElementById("saveEverything");
+  const saveRatingsBtn = document.getElementById("saveRatings");
+  const toast = document.getElementById("toast");
+  const toastMessage = document.getElementById("toastMessage");
+
+  // --- Data Management ---
+
+  async function fetchData() {
+    try {
+      const response = await fetch("/api/data");
+      appData = await response.json();
+      updateAll();
+    } catch (error) {
+      showToast("Fehler beim Laden der Daten", "error");
+    }
+  }
+
+  async function saveData() {
+    try {
+      const response = await fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(appData),
+      });
+      if (response.ok) {
+        showToast("Daten erfolgreich gespeichert!");
+      } else {
+        showToast("Fehler beim Speichern", "error");
+      }
+    } catch (error) {
+      showToast("Fehler beim Speichern", "error");
+    }
+  }
+
+  function showToast(message, type = "success") {
+    toastMessage.textContent = message;
+    toast.classList.remove("translate-y-20", "opacity-0");
+    toast.classList.add("translate-y-0", "opacity-100");
+
+    if (type === "error") {
+      toast.classList.add("border-red-500/50", "text-red-200");
+    } else {
+      toast.classList.remove("border-red-500/50", "text-red-200");
+    }
+
+    setTimeout(() => {
+      toast.classList.add("translate-y-20", "opacity-0");
+      toast.classList.remove("translate-y-0", "opacity-100");
+    }, 3000);
+  }
+
+  // --- Logic & Stats ---
+
+  function calculateStats() {
+    // Reset team stats
+    Object.keys(appData.teams).forEach((name) => {
+      appData.teams[name].goalsScored = 0;
+      appData.teams[name].matchesPlayed = 0;
+      appData.teams[name].goalsPerMatch = 0;
+    });
+
+    // Calculate based on matches
+    appData.matches.forEach((match) => {
+      if (match.status === "FINISHED") {
+        const home = appData.teams[match.home];
+        const away = appData.teams[match.away];
+
+        if (home && away) {
+          home.matchesPlayed++;
+          away.matchesPlayed++;
+          home.goalsScored += parseInt(match.homeScore) || 0;
+          away.goalsScored += parseInt(match.awayScore) || 0;
+        }
+      }
+    });
+
+    // Calculate average
+    Object.keys(appData.teams).forEach((name) => {
+      const team = appData.teams[name];
+      if (team.matchesPlayed > 0) {
+        team.goalsPerMatch = (team.goalsScored / team.matchesPlayed).toFixed(2);
+      }
+    });
+  }
+
+  function runPredictionAlgorithm() {
+    appData.matches.forEach((match) => {
+      if (match.status !== "FINISHED") {
+        const home = appData.teams[match.home];
+        const away = appData.teams[match.away];
+
+        if (home && away) {
+          const ratingDiff = home.rating - away.rating;
+          const homeGPM = parseFloat(home.goalsPerMatch) || 1.2;
+          const awayGPM = parseFloat(away.goalsPerMatch) || 1.2;
+
+          let predHome = homeGPM + ratingDiff / 40;
+          let predAway = awayGPM - ratingDiff / 40;
+
+          predHome = Math.max(0, Math.round(predHome));
+          predAway = Math.max(0, Math.round(predAway));
+
+          const isKnockout = !match.matchday.toLowerCase().includes("gruppe");
+          if (isKnockout && predHome === predAway) {
+            if (home.rating >= away.rating) {
+              predHome++;
+            } else {
+              predAway++;
+            }
+          }
+
+          match.predictedHome = predHome;
+          match.predictedAway = predAway;
+        }
+      }
+    });
+    showToast("Prognosen berechnet!");
+    renderMatches();
+  }
+
+  // --- UI Rendering ---
+
+  function updateAll() {
+    calculateStats();
+    renderTeams();
+    renderMatches();
+    updateSelects();
+  }
+
+  function renderTeams() {
+    teamsList.innerHTML = "";
+    const sortedTeams = Object.keys(appData.teams).sort();
+
+    sortedTeams.forEach((name) => {
+      const team = appData.teams[name];
+      const div = document.createElement("div");
+      div.className =
+        "group rounded-md border border-zinc-800 bg-zinc-950 p-3 transition-colors hover:border-zinc-700";
+      div.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-zinc-50">${name}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">TPS: ${team.goalsPerMatch || 0}</span>
+                        <button onclick="window.deleteTeam('${name}')" class="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="range" min="0" max="100" value="${team.rating}"
+                        class="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-zinc-800 accent-zinc-50"
+                        oninput="this.nextElementSibling.textContent = this.value"
+                        onchange="window.updateTeamRating('${name}', this.value)">
+                    <span class="text-xs font-mono font-bold text-zinc-400 w-6 text-right">${team.rating}</span>
+                </div>
+            `;
+      teamsList.appendChild(div);
+    });
+  }
+
+  window.updateTeamRating = (name, val) => {
+    if (appData.teams[name]) {
+      appData.teams[name].rating = parseInt(val);
+    }
+  };
+
+  window.deleteTeam = (name) => {
+    if (
+      confirm(
+        `Team "${name}" wirklich löschen? Alle zugehörigen Spiele werden ebenfalls entfernt.`,
+      )
+    ) {
+      delete appData.teams[name];
+      appData.matches = appData.matches.filter(
+        (m) => m.home !== name && m.away !== name,
+      );
+      updateAll();
+      showToast(`Team ${name} gelöscht.`);
+    }
+  };
+
+  function updateSelects() {
+    const sortedTeams = Object.keys(appData.teams).sort();
+    const options = sortedTeams
+      .map((name) => `<option value="${name}">${name}</option>`)
+      .join("");
+
+    homeTeamSelect.innerHTML =
+      '<option value="" disabled selected>Team 1 wählen</option>' + options;
+    awayTeamSelect.innerHTML =
+      '<option value="" disabled selected>Team 2 wählen</option>' + options;
+  }
+
+  function renderMatches() {
+    matchesContainer.innerHTML = "";
+    const groups = {};
+    appData.matches.forEach((m) => {
+      if (!groups[m.matchday]) groups[m.matchday] = [];
+      groups[m.matchday].push(m);
+    });
+
+    Object.keys(groups).forEach((day) => {
+      const section = document.createElement("section");
+      section.className =
+        "rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden shadow-sm";
+
+      let matchesHtml = groups[day]
+        .map((match) => {
+          const isFinished = match.status === "FINISHED";
+          return `
+                    <div class="border-b border-zinc-800 last:border-b-0 p-4 transition-colors hover:bg-zinc-950/50">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <!-- Teams & Score -->
+                            <div class="flex items-center justify-between md:justify-center gap-4 flex-1">
+                                <div class="text-right flex-1 text-sm font-medium text-zinc-300 truncate">${match.home}</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" value="${match.homeScore !== null ? match.homeScore : ""}"
+                                        placeholder="-"
+                                        class="h-9 w-10 rounded border border-zinc-800 bg-zinc-950 text-center text-sm font-bold focus:border-zinc-500 focus:outline-none ${isFinished ? "border-zinc-600 bg-zinc-900" : ""}"
+                                        onchange="window.updateMatchScore(${match.id}, 'home', this.value)">
+                                    <span class="text-zinc-700">:</span>
+                                    <input type="number" value="${match.awayScore !== null ? match.awayScore : ""}"
+                                        placeholder="-"
+                                        class="h-9 w-10 rounded border border-zinc-800 bg-zinc-950 text-center text-sm font-bold focus:border-zinc-500 focus:outline-none ${isFinished ? "border-zinc-600 bg-zinc-900" : ""}"
+                                        onchange="window.updateMatchScore(${match.id}, 'away', this.value)">
+                                </div>
+                                <div class="text-left flex-1 text-sm font-medium text-zinc-300 truncate">${match.away}</div>
+                            </div>
+
+                            <!-- Prediction & Actions -->
+                            <div class="flex items-center justify-between md:justify-end gap-6 border-t border-zinc-800 md:border-0 pt-4 md:pt-0">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">Prognose</span>
+                                    <span class="text-xs font-mono font-bold text-zinc-400">${match.predictedHome !== null ? match.predictedHome + ":" + match.predictedAway : "-- : --"}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <div class="relative flex items-center">
+                                            <input type="checkbox" ${isFinished ? "checked" : ""}
+                                                onchange="window.toggleMatchStatus(${match.id}, this.checked)"
+                                                class="peer h-4 w-4 appearance-none rounded border border-zinc-700 bg-zinc-950 checked:bg-zinc-50 transition-all">
+                                            <svg class="absolute h-3 w-3 text-zinc-950 opacity-0 peer-checked:opacity-100 transition-opacity left-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-zinc-500 peer-checked:text-zinc-300 uppercase tracking-wider">Beendet</span>
+                                    </label>
+                                    <button onclick="window.deleteMatch(${match.id})" class="text-zinc-600 hover:text-red-400 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        })
+        .join("");
+
+      section.innerHTML = `
+                <div class="border-b border-zinc-800 bg-zinc-950/50 px-4 py-2 flex justify-between items-center">
+                    <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">${day}</span>
+                    <span class="text-[10px] font-medium text-zinc-600">${groups[day].length} Spiele</span>
+                </div>
+                <div>${matchesHtml}</div>
+            `;
+      matchesContainer.appendChild(section);
+    });
+  }
+
+  // --- Interaction Handlers ---
+
+  window.updateMatchScore = (id, side, val) => {
+    const match = appData.matches.find((m) => m.id === id);
+    if (match) {
+      match[side + "Score"] = val === "" ? null : parseInt(val);
+      calculateStats();
+      renderTeams();
+    }
+  };
+
+  window.toggleMatchStatus = (id, finished) => {
+    const match = appData.matches.find((m) => m.id === id);
+    if (match) {
+      match.status = finished ? "FINISHED" : "UPCOMING";
+      updateAll();
+    }
+  };
+
+  window.deleteMatch = (id) => {
+    if (confirm("Dieses Spiel wirklich löschen?")) {
+      appData.matches = appData.matches.filter((m) => m.id !== id);
+      updateAll();
+    }
+  };
+
+  addTeamForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("teamName").value.trim();
+    const rating = parseInt(document.getElementById("teamRating").value);
+
+    if (name && !appData.teams[name]) {
+      appData.teams[name] = {
+        rating: rating,
+        goalsScored: 0,
+        matchesPlayed: 0,
+        goalsPerMatch: 0,
+      };
+      document.getElementById("teamName").value = "";
+      updateAll();
+      showToast(`Team ${name} hinzugefügt!`);
+    } else {
+      showToast("Team existiert bereits oder Name ungültig", "error");
+    }
+  });
+
+  addMatchForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const home = homeTeamSelect.value;
+    const away = awayTeamSelect.value;
+    const matchday = document.getElementById("matchdayInput").value.trim();
+
+    if (home && away && home !== away && matchday) {
+      const newMatch = {
+        id: Date.now(),
+        home,
+        away,
+        homeScore: null,
+        awayScore: null,
+        status: "UPCOMING",
+        matchday,
+        predictedHome: null,
+        predictedAway: null,
+      };
+      appData.matches.push(newMatch);
+      updateAll();
+      showToast("Spiel hinzugefügt!");
+    } else {
+      showToast("Ungültige Spieldaten", "error");
+    }
+  });
+
+  calculateBtn.addEventListener("click", runPredictionAlgorithm);
+  saveEverythingBtn.addEventListener("click", saveData);
+  saveRatingsBtn.addEventListener("click", () => {
+    saveData();
+  });
+
+  // Initial Load
+  fetchData();
+});
