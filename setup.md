@@ -48,10 +48,10 @@ cd Desktop
 Jetzt laden wir den Programmcode direkt von GitHub auf deinen PC herunter. Kopiere den folgenden Befehl, füge ihn in dein Terminal ein und drücke **Enter**:
 
 ```bash
-git clone https://github.com/czett/wm-tippmodell.git
+git clone https://github.com/czett/sloptip.git
 ```
 
-Dadurch wird auf deinem Desktop ein neuer Ordner namens `wm-tippmodell` erstellt, in dem sich alle Dateien von Sloptip befinden.
+Dadurch wird auf deinem Desktop ein neuer Ordner namens `sloptip` erstellt, in dem sich alle Dateien von Sloptip befinden.
 
 ---
 
@@ -60,10 +60,10 @@ Dadurch wird auf deinem Desktop ein neuer Ordner namens `wm-tippmodell` erstellt
 Damit die nächsten Befehle im richtigen Ordner ausgeführt werden, müssen wir dem Terminal sagen, dass es in diesen Ordner hineingehen soll. Gib folgenden Befehl ein und drücke **Enter**:
 
 ```bash
-cd wm-tippmodell
+cd sloptip
 ```
 
-Der Pfad im Terminal (der Text vor deinem blinkenden Cursor) aktualisiert sich und zeigt dir an, dass du dich jetzt im Ordner `wm-tippmodell` befindest.
+Der Pfad im Terminal (der Text vor deinem blinkenden Cursor) aktualisiert sich und zeigt dir an, dass du dich jetzt im Ordner `sloptip` befindest.
 
 ---
 
@@ -96,7 +96,7 @@ Jetzt müssen wir diese Umgebung **aktivieren**, damit das Terminal sie auch nut
     source venv/bin/activate
     ```
 
-Sobald die Umgebung aktiv ist, siehst du ein `(venv)` ganz am Anfang deiner Terminalzeile (z. B. `(venv) C:\Users\DeinName\Desktop\wm-tippmodell>`).
+Sobald die Umgebung aktiv ist, siehst du ein `(venv)` ganz am Anfang deiner Terminalzeile (z. B. `(venv) C:\Users\DeinName\Desktop\sloptip>`).
 
 ---
 
