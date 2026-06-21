@@ -376,25 +376,25 @@
         },
         {
             "away": "Elfenbeink\u00fcste",
-            "awayScore": null,
+            "awayScore": 1,
             "home": "Deutschland",
-            "homeScore": null,
+            "homeScore": 2,
             "id": 1781876140165,
             "matchday": "ST2",
             "predictedAway": 0,
             "predictedHome": 4,
-            "status": "UPCOMING"
+            "status": "FINISHED"
         },
         {
             "away": "Curacao",
-            "awayScore": null,
+            "awayScore": 0,
             "home": "Ecuador",
-            "homeScore": null,
+            "homeScore": 0,
             "id": 1781876146622,
             "matchday": "ST2",
             "predictedAway": 0,
             "predictedHome": 1,
-            "status": "UPCOMING"
+            "status": "FINISHED"
         },
         {
             "away": "Tunesien",
@@ -420,25 +420,25 @@
         },
         {
             "away": "Schweden",
-            "awayScore": null,
+            "awayScore": 1,
             "home": "Niederlande",
-            "homeScore": null,
+            "homeScore": 5,
             "id": 1781876357457,
             "matchday": "ST2",
             "predictedAway": 2,
             "predictedHome": 1,
-            "status": "UPCOMING"
+            "status": "FINISHED"
         },
         {
             "away": "Japan",
-            "awayScore": null,
+            "awayScore": 4,
             "home": "Tunesien",
-            "homeScore": null,
+            "homeScore": 0,
             "id": 1781876366575,
             "matchday": "ST2",
             "predictedAway": 2,
             "predictedHome": 0,
-            "status": "UPCOMING"
+            "status": "FINISHED"
         },
         {
             "away": "\u00c4gypten",
@@ -557,8 +557,8 @@
             "homeScore": null,
             "id": 1781877374477,
             "matchday": "ST3",
-            "predictedAway": null,
-            "predictedHome": null,
+            "predictedAway": 1,
+            "predictedHome": 0,
             "status": "UPCOMING"
         },
         {
@@ -568,9 +568,20 @@
             "homeScore": null,
             "id": 1781877380143,
             "matchday": "ST3",
-            "predictedAway": null,
-            "predictedHome": null,
+            "predictedAway": 1,
+            "predictedHome": 0,
             "status": "UPCOMING"
+        },
+        {
+            "id": 1782048063564,
+            "home": "Tunesien",
+            "away": "Niederlande",
+            "homeScore": null,
+            "awayScore": null,
+            "status": "UPCOMING",
+            "matchday": "ST3",
+            "predictedHome": 0,
+            "predictedAway": 3
         }
     ],
     "teams": {
@@ -611,9 +622,9 @@
             "rating": 85
         },
         "Curacao": {
-            "goalsPerMatch": "1.00",
+            "goalsPerMatch": "0.50",
             "goalsScored": 1,
-            "matchesPlayed": 1,
+            "matchesPlayed": 2,
             "rating": 42
         },
         "DR Kongo": {
@@ -623,21 +634,21 @@
             "rating": 70
         },
         "Deutschland": {
-            "goalsPerMatch": "7.00",
-            "goalsScored": 7,
-            "matchesPlayed": 1,
+            "goalsPerMatch": "4.50",
+            "goalsScored": 9,
+            "matchesPlayed": 2,
             "rating": 88
         },
         "Ecuador": {
             "goalsPerMatch": "0.00",
             "goalsScored": 0,
-            "matchesPlayed": 1,
+            "matchesPlayed": 2,
             "rating": 73
         },
         "Elfenbeink\u00fcste": {
             "goalsPerMatch": "1.00",
-            "goalsScored": 1,
-            "matchesPlayed": 1,
+            "goalsScored": 2,
+            "matchesPlayed": 2,
             "rating": 72
         },
         "England": {
@@ -677,9 +688,9 @@
             "rating": 65
         },
         "Japan": {
-            "goalsPerMatch": "2.00",
-            "goalsScored": 2,
-            "matchesPlayed": 1,
+            "goalsPerMatch": "3.00",
+            "goalsScored": 6,
+            "matchesPlayed": 2,
             "rating": 76
         },
         "Jordanien": {
@@ -737,9 +748,9 @@
             "rating": 47
         },
         "Niederlande": {
-            "goalsPerMatch": "2.00",
-            "goalsScored": 2,
-            "matchesPlayed": 1,
+            "goalsPerMatch": "3.50",
+            "goalsScored": 7,
+            "matchesPlayed": 2,
             "rating": 85
         },
         "Norwegen": {
@@ -779,9 +790,9 @@
             "rating": 65
         },
         "Schweden": {
-            "goalsPerMatch": "5.00",
-            "goalsScored": 5,
-            "matchesPlayed": 1,
+            "goalsPerMatch": "3.00",
+            "goalsScored": 6,
+            "matchesPlayed": 2,
             "rating": 75
         },
         "Schweiz": {
@@ -821,9 +832,9 @@
             "rating": 78
         },
         "Tunesien": {
-            "goalsPerMatch": "1.00",
+            "goalsPerMatch": "0.50",
             "goalsScored": 1,
-            "matchesPlayed": 1,
+            "matchesPlayed": 2,
             "rating": 60
         },
         "T\u00fcrkei": {

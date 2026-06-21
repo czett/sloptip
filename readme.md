@@ -1,31 +1,31 @@
-# World Cup 2026 Prediction Model
+# WM 2026 Tippmodell / Prognose-Modell
 
-> A high-precision, local prediction tool powered by Poisson distributions. Minimalist dark-mode aesthetic.
+> Ein hochpräzises, lokales Tool zur Vorhersage von Spielergebnissen basierend auf Poisson-Verteilungen. Minimalistisches Design im Dark Mode.
 
 ## Features
 
-- **100% Local & Autonomous:** Zero-latency data persistence via a local `data.json`. No external databases, no API dependencies.
-- **Advanced Poisson Model:** Predictions are based on Expected Goals (xG), calculated by blending historical form (goals per match) with a custom 0-100 team rating. The most probable outcome is mathematically derived using a 7x7 probability matrix.
-- **Intelligent Knockout Tie-Breaker:** The system automatically detects knockout rounds, rejects draw outcomes, and selects the next most probable scoreline that clearly determines a winner (factoring in team ratings).
-- **Cascading Deletions:** Strict data integrity. When a team is removed, the engine safely and automatically purges all related matches from the state.
-- **Minimalist Interface:** Radical monochrome design (Space Grotesk, Pitch Black). Features dynamic flag mapping (emoji conversion via ISO codes) and interactive, collapsible matchdays with animated SVG chevrons.
+- **100% lokal & autonom:** Datenpersistenz ohne Latenz über eine lokale `data.json`. Keine externen Datenbanken, keine API-Abhängigkeiten.
+- **Erweitertes Poisson-Modell:** Vorhersagen basieren auf Expected Goals (xG), berechnet durch die Kombination der historischen Form (Tore pro Spiel) mit einer benutzerdefinierten Teambewertung von 0–100. Das wahrscheinlichste Ergebnis wird mathematisch über eine 7x7-Wahrscheinlichkeitsmatrix ermittelt.
+- **Intelligente K.-o.-Runden-Entscheidung:** Das System erkennt K.-o.-Runden automatisch, schließt Unentschieden aus und wählt das nächste wahrscheinlichste Ergebnis, das einen eindeutigen Sieger bestimmt (unter Berücksichtigung der Teambewertungen).
+- **Kaskadierende Löschungen:** Strikte Datenintegrität. Wenn ein Team entfernt wird, bereinigt die Engine automatisch und sicher alle zugehörigen Spiele aus dem Datenbestand.
+- **Minimalistisches Interface:** Radikales monochromes Design (Space Grotesk, Pitch Black). Mit dynamischer Flaggendarstellung (Emoji-Konvertierung über ISO-Codes) und interaktiven, einklappbaren Spieltagen mit animierten SVG-Pfeilen.
 
 ![World Cup 2026 Prediction Model App Screenshot](media/p1.png)
 
-## Quickstart
+## Schnellstart
 
-Prerequisite: Python 3.10+
+Voraussetzung: Python 3.10+
 
 ```bash
-# 1. Create and activate a virtual environment
+# 1. Virtuelle Umgebung erstellen und aktivieren
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 2. Install dependencies
+# 2. Abhängigkeiten installieren
 pip install -r requirements.txt
 
-# 3. Start the application
+# 3. Anwendung starten
 python3 app.py
 ```
 
-Then open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in your browser.
+Öffne anschließend **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in deinem Browser.
