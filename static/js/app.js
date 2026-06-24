@@ -280,6 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     showToast("Prognosen berechnet!");
     renderMatches();
+    saveData(true);
   }
 
   // --- UI Rendering ---
@@ -327,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.updateTeamRating = (name, val) => {
     if (appData.teams[name]) {
       appData.teams[name].rating = parseInt(val);
+      saveData(true);
     }
   };
 
@@ -467,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
       match[side + "Score"] = val === "" ? null : parseInt(val);
       calculateStats();
       renderTeams();
+      saveData(true);
     }
   };
 
@@ -475,6 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (match) {
       match.status = finished ? "FINISHED" : "UPCOMING";
       updateAll();
+      saveData(true);
     }
   };
 
@@ -482,6 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirm("Dieses Spiel wirklich löschen?")) {
       appData.matches = appData.matches.filter((m) => m.id !== id);
       updateAll();
+      saveData(true);
     }
   };
 
@@ -499,6 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       document.getElementById("teamName").value = "";
       updateAll();
+      saveData(true);
       showToast(`Team ${name} hinzugefügt!`);
     } else {
       showToast("Team existiert bereits oder Name ungültig", "error");
@@ -525,6 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       appData.matches.push(newMatch);
       updateAll();
+      saveData(true);
       showToast("Spiel hinzugefügt!");
     } else {
       showToast("Ungültige Spieldaten", "error");

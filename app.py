@@ -5,7 +5,9 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-DATA_FILE = "data.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "data.json")
+
 
 
 def load_data():
