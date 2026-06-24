@@ -12,37 +12,99 @@ document.addEventListener("DOMContentLoaded", () => {
   const homeTeamSelect = document.getElementById("homeTeamSelect");
   const awayTeamSelect = document.getElementById("awayTeamSelect");
   const calculateBtn = document.getElementById("calculatePredictions");
-  const saveEverythingBtn = document.getElementById("saveEverything");
-  const saveRatingsBtn = document.getElementById("saveRatings");
   const toast = document.getElementById("toast");
   const toastMessage = document.getElementById("toastMessage");
 
   // --- Data Management & Sync ---
+  let isSaving = false;
+  let savePending = false;
+  let saveStatus = "saved"; // "saved", "saving", "error", "unsaved"
+
+  function updateSaveStatusUI(status) {
+    saveStatus = status;
+    const statusText = document.getElementById("saveStatusText");
+    const statusDot = document.getElementById("saveStatusDot");
+    if (!statusText || !statusDot) return;
+
+    if (status === "saved") {
+      statusText.textContent = "Gespeichert";
+      statusText.className = "text-xs font-semibold text-zinc-400";
+      statusDot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500 transition-all duration-300";
+    } else if (status === "saving") {
+      statusText.textContent = "Wird gespeichert...";
+      statusText.className = "text-xs font-semibold text-zinc-500";
+      statusDot.className = "h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse transition-all duration-300";
+    } else if (status === "error") {
+      statusText.textContent = "Speichern fehlgeschlagen";
+      statusText.className = "text-xs font-semibold text-red-400";
+      statusDot.className = "h-2.5 w-2.5 rounded-full bg-red-500 transition-all duration-300";
+    } else if (status === "unsaved") {
+      statusText.textContent = "Ungespeicherte Änderungen";
+      statusText.className = "text-xs font-semibold text-amber-400";
+      statusDot.className = "h-2.5 w-2.5 rounded-full bg-amber-500 transition-all duration-300";
+    }
+  }
 
   async function fetchData() {
     try {
       const response = await fetch("/api/data");
       appData = await response.json();
       updateAll();
+      updateSaveStatusUI("saved");
     } catch (error) {
       showToast("Fehler beim Laden der Daten", "error");
     }
   }
 
   async function saveData(silent = false) {
+    if (isSaving) {
+      savePending = true;
+      updateSaveStatusUI("unsaved");
+      return;
+    }
+
+    isSaving = true;
+    updateSaveStatusUI("saving");
+
+    const startTime = Date.now();
+
     try {
       const response = await fetch("/api/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(appData),
       });
+
+      // Enforce a minimum save duration of 800ms for smoother visual transitions
+      const elapsed = Date.now() - startTime;
+      const minDuration = 800;
+      if (elapsed < minDuration) {
+        await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
+      }
+
       if (response.ok) {
-        if (!silent) showToast("Daten erfolgreich gespeichert!");
+        if (!savePending) {
+          updateSaveStatusUI("saved");
+        }
       } else {
+        updateSaveStatusUI("error");
         showToast("Fehler beim Speichern", "error");
       }
     } catch (error) {
+      const elapsed = Date.now() - startTime;
+      const minDuration = 800;
+      if (elapsed < minDuration) {
+        await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
+      }
+      updateSaveStatusUI("error");
       showToast("Fehler beim Speichern", "error");
+    } finally {
+      isSaving = false;
+      if (savePending) {
+        savePending = false;
+        // Schedule next save after a tiny delay
+        setTimeout(() => saveData(), 100);
+      }
     }
   }
 
@@ -539,8 +601,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   calculateBtn.addEventListener("click", runPredictionAlgorithm);
-  saveEverythingBtn.addEventListener("click", () => saveData());
-  saveRatingsBtn.addEventListener("click", () => saveData());
+
+  // Before unload warning for unsaved changes
+  window.addEventListener("beforeunload", (e) => {
+    if (saveStatus !== "saved") {
+      e.preventDefault();
+      e.returnValue = "Es gibt ungespeicherte Änderungen. Möchtest du die Seite wirklich verlassen?";
+      return e.returnValue;
+    }
+  });
 
   // Initial Load
   fetchData();

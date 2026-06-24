@@ -9,13 +9,32 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "data.json")
 
 
+def initialize_data_file():
+    if not os.path.exists(DATA_FILE):
+        example_path = os.path.join(BASE_DIR, "example_jsons", "data.json")
+        if os.path.exists(example_path):
+            try:
+                with open(example_path, "r") as src, open(DATA_FILE, "w") as dst:
+                    dst.write(src.read())
+                return
+            except Exception:
+                pass
+        # Fallback to hardcoded initial structure if copy fails
+        try:
+            initial_data = {"teams": {}, "matches": []}
+            with open(DATA_FILE, "w") as f:
+                json.dump(initial_data, f, indent=4)
+        except Exception:
+            pass
+
+
+# Ensure data file exists on startup
+initialize_data_file()
+
 
 def load_data():
     if not os.path.exists(DATA_FILE):
-        initial_data = {"teams": {}, "matches": []}
-        with open(DATA_FILE, "w") as f:
-            json.dump(initial_data, f, indent=4)
-        return initial_data
+        initialize_data_file()
 
     with open(DATA_FILE, "r") as f:
         try:

@@ -96,19 +96,17 @@
                         >Sloptip</span
                     >
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-6">
                     <button
                         id="calculatePredictions"
                         class="inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200 transition-all"
                     >
                         Tipps berechnen
                     </button>
-                    <button
-                        id="saveEverything"
-                        class="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-900 transition-all"
-                    >
-                        Alles speichern
-                    </button>
+                    <div id="saveStatus" class="flex items-center gap-2 text-xs font-semibold text-zinc-400 select-none">
+                        <span id="saveStatusDot" class="h-2.5 w-2.5 rounded-full bg-emerald-500 transition-all duration-300"></span>
+                        <span id="saveStatusText">Gespeichert</span>
+                    </div>
                 </div>
             </div>
         </header>
@@ -228,12 +226,6 @@
                             >
                                 Teams
                             </h2>
-                            <button
-                                id="saveRatings"
-                                class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
-                            >
-                                Ratings speichern
-                            </button>
                         </div>
                         <div
                             id="teamsList"
